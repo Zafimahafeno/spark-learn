@@ -1,8 +1,41 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { categories } from "@/data/mockData";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CategoryItem {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+  courseCount: number;
+}
 
 const CategoriesSection = () => {
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data: cats } = await supabase.from("categories").select("*");
+      if (cats) {
+        const withCounts = await Promise.all(
+          cats.map(async (cat) => {
+            const { count } = await supabase
+              .from("courses")
+              .select("*", { count: "exact", head: true })
+              .eq("category_id", cat.id)
+              .eq("status", "published");
+            return { id: cat.id, name: cat.name, slug: cat.slug, icon: cat.icon, courseCount: count ?? 0 };
+          })
+        );
+        setCategories(withCounts);
+      }
+    };
+    fetch();
+  }, []);
+
+  if (categories.length === 0) return null;
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
@@ -29,7 +62,7 @@ const CategoriesSection = () => {
                 to={`/courses?category=${cat.slug}`}
                 className="glass-card p-5 text-center hover-lift block"
               >
-                <span className="text-3xl block mb-3">{cat.icon}</span>
+                <span className="text-3xl block mb-3">{cat.icon || "📚"}</span>
                 <h3 className="font-heading text-sm font-semibold text-foreground mb-1">{cat.name}</h3>
                 <p className="text-xs text-muted-foreground">{cat.courseCount} cours</p>
               </Link>
