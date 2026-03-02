@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
-import { Moon, Sun, Menu, X, BookOpen } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Moon, Sun, Menu, X, BookOpen, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const { isDark, toggle } = useTheme();
+  const { user, profile, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
@@ -13,6 +15,11 @@ const Navbar = () => {
     { to: "/courses", label: "Cours" },
     { to: "/categories", label: "Catégories" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50">
@@ -47,18 +54,41 @@ const Navbar = () => {
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
-          <Link
-            to="/login"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Connexion
-          </Link>
-          <Link
-            to="/register"
-            className="text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-          >
-            S'inscrire
-          </Link>
+
+          {!loading && user ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">
+                  {profile?.firstname || user.email?.split("@")[0]}
+                </span>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Déconnexion"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : !loading ? (
+            <>
+              <Link
+                to="/login"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Connexion
+              </Link>
+              <Link
+                to="/register"
+                className="text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                S'inscrire
+              </Link>
+            </>
+          ) : null}
         </div>
 
         {/* Mobile toggle */}
@@ -93,8 +123,29 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="pt-3 border-t border-border space-y-2">
-                <Link to="/login" className="block text-sm text-muted-foreground">Connexion</Link>
-                <Link to="/register" className="block text-sm font-medium text-primary">S'inscrire</Link>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2 text-sm text-foreground">
+                      <User className="w-4 h-4 text-primary" />
+                      {profile?.firstname || user.email?.split("@")[0]}
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" /> Déconnexion
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setMobileOpen(false)} className="block text-sm text-muted-foreground">
+                      Connexion
+                    </Link>
+                    <Link to="/register" onClick={() => setMobileOpen(false)} className="block text-sm font-medium text-primary">
+                      S'inscrire
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

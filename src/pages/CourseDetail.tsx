@@ -1,15 +1,170 @@
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Users, Clock, BookOpen, Play, FileText, File, ChevronDown, Award, Check } from "lucide-react";
-import { useState } from "react";
+import { Star, Users, Clock, BookOpen, Play, FileText, File, ChevronDown, Award, Check, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { courses } from "@/data/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
-const CourseDetail = () => {
+interface CourseDetail {
+  id: number;
+  title: string;
+  slug: string;
+  subtitle: string;
+  description: string;
+  price: number;
+  level: string;
+  instructor: { firstname: string; lastname: string; bio: string };
+  category: { name: string };
+  sections: { id: number; title: string; sort_order: number; lessons: { id: number; title: string; content_type: string; duration_minutes: number; is_preview: boolean; sort_order: number }[] }[];
+  totalLessons: number;
+  totalDuration: number;
+  reviewCount: number;
+  avgRating: number;
+  studentCount: number;
+}
+
+const CourseDetailPage = () => {
   const { slug } = useParams();
-  const course = courses.find((c) => c.slug === slug);
+  const { user } = useAuth();
+  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState<number[]>([]);
+  const [enrolling, setEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      const { data: c } = await supabase
+        .from("courses")
+        .select(`
+          *,
+          categories!courses_category_id_fkey(name),
+          profiles!courses_instructor_id_fkey(firstname, lastname, bio),
+          sections(id, title, sort_order, lessons(id, title, content_type, duration_minutes, is_preview, sort_order))
+        `)
+        .eq("slug", slug)
+        .single();
+
+      if (c) {
+        const sections = (c.sections || [])
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+          .map((s: any) => ({
+            ...s,
+            lessons: (s.lessons || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+          }));
+
+        const totalLessons = sections.reduce((sum: number, s: any) => sum + s.lessons.length, 0);
+        const totalDuration = sections.reduce(
+          (sum: number, s: any) => sum + s.lessons.reduce((ls: number, l: any) => ls + (l.duration_minutes || 0), 0),
+          0
+        );
+
+        // Get review stats
+        const { count: reviewCount } = await supabase
+          .from("reviews")
+          .select("*", { count: "exact", head: true })
+          .eq("course_id", c.id);
+
+        const { data: reviews } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("course_id", c.id);
+
+        const avgRating = reviews && reviews.length > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : 0;
+
+        // Get student count
+        const { count: studentCount } = await supabase
+          .from("enrollments")
+          .select("*", { count: "exact", head: true })
+          .eq("course_id", c.id);
+
+        setCourse({
+          id: c.id,
+          title: c.title,
+          slug: c.slug,
+          subtitle: c.subtitle || "",
+          description: c.description || "",
+          price: Number(c.price) || 0,
+          level: c.level || "beginner",
+          instructor: {
+            firstname: (c.profiles as any)?.firstname || "Instructeur",
+            lastname: (c.profiles as any)?.lastname || "",
+            bio: (c.profiles as any)?.bio || "",
+          },
+          category: { name: (c.categories as any)?.name || "" },
+          sections,
+          totalLessons,
+          totalDuration,
+          reviewCount: reviewCount ?? 0,
+          avgRating: Math.round(avgRating * 10) / 10,
+          studentCount: studentCount ?? 0,
+        });
+
+        // Check enrollment
+        if (user) {
+          const { data: enrollment } = await supabase
+            .from("enrollments")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("course_id", c.id)
+            .maybeSingle();
+          setIsEnrolled(!!enrollment);
+        }
+      }
+      setLoading(false);
+    };
+    fetchCourse();
+  }, [slug, user]);
+
+  const toggleSection = (id: number) => {
+    setOpenSections((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  const handleEnroll = async () => {
+    if (!user) {
+      toast.error("Connectez-vous pour vous inscrire");
+      return;
+    }
+    if (!course) return;
+    setEnrolling(true);
+    const { error } = await supabase
+      .from("enrollments")
+      .insert({ user_id: user.id, course_id: course.id });
+    setEnrolling(false);
+    if (error) {
+      toast.error("Erreur lors de l'inscription");
+    } else {
+      setIsEnrolled(true);
+      toast.success("Inscription réussie !");
+    }
+  };
+
+  const levelLabels: Record<string, string> = {
+    beginner: "Débutant",
+    intermediate: "Intermédiaire",
+    advanced: "Avancé",
+    all: "Tous niveaux",
+  };
+
+  const contentIcon: Record<string, any> = { video: Play, text: FileText, document: File };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex justify-center items-center pt-32">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -22,21 +177,6 @@ const CourseDetail = () => {
       </div>
     );
   }
-
-  const toggleSection = (id: number) => {
-    setOpenSections((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
-
-  const levelLabels: Record<string, string> = {
-    beginner: "Débutant",
-    intermediate: "Intermédiaire",
-    advanced: "Avancé",
-    all: "Tous niveaux",
-  };
-
-  const contentIcon = { video: Play, text: FileText, document: File };
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,12 +196,16 @@ const CourseDetail = () => {
               <p className="text-lg text-muted-foreground">{course.subtitle}</p>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  <strong className="text-foreground">{course.rating}</strong> ({course.reviewCount} avis)
-                </span>
-                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {course.studentCount.toLocaleString()} étudiants</span>
-                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {Math.round(course.totalDuration / 60)}h de contenu</span>
+                {course.avgRating > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <strong className="text-foreground">{course.avgRating}</strong> ({course.reviewCount} avis)
+                  </span>
+                )}
+                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {course.studentCount} étudiants</span>
+                {course.totalDuration > 0 && (
+                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {Math.round(course.totalDuration / 60)}h de contenu</span>
+                )}
                 <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {course.totalLessons} leçons</span>
               </div>
 
@@ -89,13 +233,24 @@ const CourseDetail = () => {
               <div className="text-3xl font-heading font-bold text-foreground">
                 {course.price === 0 ? "Gratuit" : `${course.price}€`}
               </div>
-              <button className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-                {course.price === 0 ? "S'inscrire gratuitement" : "Acheter ce cours"}
-              </button>
+              {isEnrolled ? (
+                <div className="w-full py-3 rounded-lg bg-primary/10 text-primary font-medium text-center flex items-center justify-center gap-2">
+                  <Check className="w-5 h-5" /> Vous êtes inscrit
+                </div>
+              ) : (
+                <button
+                  onClick={handleEnroll}
+                  disabled={enrolling}
+                  className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {enrolling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {course.price === 0 ? "S'inscrire gratuitement" : "Acheter ce cours"}
+                </button>
+              )}
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Accès à vie</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Certificat de complétion</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Niveau: {levelLabels[course.level]}</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Niveau: {levelLabels[course.level] || course.level}</li>
                 <li className="flex items-center gap-2"><Award className="w-4 h-4 text-primary" /> Quiz et évaluations</li>
               </ul>
             </motion.div>
@@ -112,7 +267,8 @@ const CourseDetail = () => {
 
             <h2 className="font-heading text-2xl font-bold mb-4">Contenu du cours</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              {course.sections.length} sections • {course.totalLessons} leçons • {Math.round(course.totalDuration / 60)}h de durée totale
+              {course.sections.length} sections • {course.totalLessons} leçons
+              {course.totalDuration > 0 && ` • ${Math.round(course.totalDuration / 60)}h de durée totale`}
             </p>
 
             <div className="space-y-3">
@@ -139,7 +295,7 @@ const CourseDetail = () => {
                       className="border-t border-border"
                     >
                       {section.lessons.map((lesson) => {
-                        const Icon = contentIcon[lesson.contentType];
+                        const Icon = contentIcon[lesson.content_type] || FileText;
                         return (
                           <div
                             key={lesson.id}
@@ -148,11 +304,11 @@ const CourseDetail = () => {
                             <div className="flex items-center gap-3">
                               <Icon className="w-4 h-4 text-muted-foreground" />
                               <span className="text-foreground">{lesson.title}</span>
-                              {lesson.isPreview && (
+                              {lesson.is_preview && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">Aperçu</span>
                               )}
                             </div>
-                            <span className="text-xs text-muted-foreground">{lesson.durationMinutes} min</span>
+                            <span className="text-xs text-muted-foreground">{lesson.duration_minutes} min</span>
                           </div>
                         );
                       })}
@@ -170,4 +326,4 @@ const CourseDetail = () => {
   );
 };
 
-export default CourseDetail;
+export default CourseDetailPage;
