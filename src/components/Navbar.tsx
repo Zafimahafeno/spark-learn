@@ -57,14 +57,15 @@ const Navbar = () => {
 
           {!loading && user ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+              >
+                <User className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">
                   {profile?.firstname || user.email?.split("@")[0]}
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
@@ -125,10 +126,10 @@ const Navbar = () => {
               <div className="pt-3 border-t border-border space-y-2">
                 {user ? (
                   <>
-                    <div className="flex items-center gap-2 text-sm text-foreground">
+                    <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 text-sm text-foreground font-medium">
                       <User className="w-4 h-4 text-primary" />
-                      {profile?.firstname || user.email?.split("@")[0]}
-                    </div>
+                      {profile?.firstname || user.email?.split("@")[0]} — Dashboard
+                    </Link>
                     <button
                       onClick={handleSignOut}
                       className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
