@@ -26,15 +26,19 @@ const CourseCard = ({ course, index = 0 }: CourseCardProps) => {
       <Link to={`/course/${course.slug}`} className="block group">
         <div className="glass-card overflow-hidden hover-lift">
           {/* Thumbnail placeholder */}
-          <div className="aspect-video bg-secondary relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <BookOpen className="w-12 h-12 text-muted-foreground/30" />
-            </div>
-            <div className="absolute top-3 left-3">
-              <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary/90 text-primary-foreground">
-                {levelLabels[course.level]}
-              </span>
-            </div>
+            <div className="aspect-video bg-secondary relative overflow-hidden">
+              {course.thumbnailUrl ? (
+                <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-muted-foreground/30" />
+                </div>
+              )}
+              <div className="absolute top-3 left-3">
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary/90 text-primary-foreground">
+                  {levelLabels[course.level]}
+                </span>
+              </div>
             {course.price === 0 && (
               <div className="absolute top-3 right-3">
                 <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent text-accent-foreground">
