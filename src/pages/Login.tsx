@@ -28,7 +28,7 @@ const Login = () => {
         : error.message);
     } else {
       toast.success("Connexion réussie !");
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 
