@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { BookOpen, Mail, Lock, User, Eye, EyeOff, Loader2, GraduationCap, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ const Register = () => {
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "instructor">("student");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
@@ -26,7 +27,7 @@ const Register = () => {
       return;
     }
     setIsLoading(true);
-    const { error } = await signUp(email, password, firstname, lastname);
+    const { error } = await signUp(email, password, firstname, lastname, role);
     setIsLoading(false);
     if (error) {
       toast.error(error.message);
@@ -62,6 +63,37 @@ const Register = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Role Selection */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Je suis</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole("student")}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
+                  role === "student"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input bg-background text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                Étudiant
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("instructor")}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
+                  role === "instructor"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input bg-background text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                Instructeur
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">Prénom</label>
