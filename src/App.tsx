@@ -19,6 +19,7 @@ import Certificates from "@/pages/dashboard/student/Certificates";
 import PaymentHistory from "@/pages/dashboard/student/PaymentHistory";
 import ProfileEdit from "@/pages/dashboard/shared/ProfileEdit";
 import ManageCourses from "@/pages/dashboard/instructor/ManageCourses";
+import ManageCourseContent from "@/pages/dashboard/instructor/ManageCourseContent";
 import InstructorStats from "@/pages/dashboard/instructor/InstructorStats";
 import InstructorReviews from "@/pages/dashboard/instructor/InstructorReviews";
 import ManageQuizzes from "@/pages/dashboard/instructor/ManageQuizzes";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/dashboard/payments" element={<DashboardPage><PaymentHistory /></DashboardPage>} />
             <Route path="/dashboard/profile" element={<DashboardPage><ProfileEdit /></DashboardPage>} />
             <Route path="/dashboard/manage-courses" element={<ProtectedRoute allowedRoles={["instructor", "admin"]}><DashboardLayout><ManageCourses /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/dashboard/manage-courses/:courseId/content" element={<ProtectedRoute allowedRoles={["instructor", "admin"]}><DashboardLayout><ManageCourseContent /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/stats" element={<ProtectedRoute allowedRoles={["instructor", "admin"]}><DashboardLayout><InstructorStats /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/reviews" element={<ProtectedRoute allowedRoles={["instructor", "admin"]}><DashboardLayout><InstructorReviews /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/quizzes" element={<ProtectedRoute allowedRoles={["instructor", "admin"]}><DashboardLayout><ManageQuizzes /></DashboardLayout></ProtectedRoute>} />
