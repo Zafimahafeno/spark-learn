@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { BookOpen, Award, Play } from "lucide-react";
 
 interface EnrolledCourse {
   id: number;
@@ -49,23 +52,43 @@ const MyCourses = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {courses.map((c) => (
-            <Link key={c.id} to={`/course/${c.course.slug}`}>
-              <Card className="hover-lift cursor-pointer h-full">
-                {c.course.thumbnail_url && (
-                  <img src={c.course.thumbnail_url} alt={c.course.title} className="w-full h-40 object-cover rounded-t-lg" />
-                )}
-                <CardHeader className="pb-2">
+            <Card key={c.id} className="hover-lift cursor-pointer h-full flex flex-col">
+              {c.course.thumbnail_url ? (
+                <img src={c.course.thumbnail_url} alt={c.course.title} className="w-full h-40 object-cover rounded-t-lg" />
+              ) : (
+                <div className="w-full h-40 bg-secondary rounded-t-lg flex items-center justify-center">
+                  <BookOpen className="w-10 h-10 text-muted-foreground/30" />
+                </div>
+              )}
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
                   <CardTitle className="text-base">{c.course.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                    <span>{c.is_completed ? "Terminé ✓" : "En cours"}</span>
-                    <span>{c.progress_percent}%</span>
-                  </div>
-                  <Progress value={c.progress_percent} className="h-2" />
-                </CardContent>
-              </Card>
-            </Link>
+                  {c.is_completed && <Badge variant="default" className="text-xs">Terminé</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-end gap-3">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{c.is_completed ? "Cours achevé ✓" : "En cours"}</span>
+                  <span className="font-semibold text-foreground">{c.progress_percent}%</span>
+                </div>
+                <Progress value={c.progress_percent} className="h-2" />
+                
+                <div className="flex gap-2 mt-2">
+                  <Link to={`/course/${c.course.slug}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Play className="w-3 h-3 mr-1" /> Continuer
+                    </Button>
+                  </Link>
+                  {c.progress_percent >= 100 && (
+                    <Link to={`/course/${c.course.slug}/quiz`}>
+                      <Button size="sm" variant="default">
+                        <Award className="w-3 h-3 mr-1" /> Passer le quiz
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

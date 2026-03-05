@@ -22,6 +22,7 @@ import ManageCourses from "@/pages/dashboard/instructor/ManageCourses";
 import InstructorStats from "@/pages/dashboard/instructor/InstructorStats";
 import InstructorReviews from "@/pages/dashboard/instructor/InstructorReviews";
 import ManageQuizzes from "@/pages/dashboard/instructor/ManageQuizzes";
+import CourseQuiz from "@/pages/CourseQuiz";
 import UserManagement from "@/pages/dashboard/admin/UserManagement";
 import CategoryManagement from "@/pages/dashboard/admin/CategoryManagement";
 import CourseModeration from "@/pages/dashboard/admin/CourseModeration";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/courses" element={<Courses />} />
             <Route path="/course/:slug" element={<CourseDetail />} />
             <Route path="/categories" element={<Categories />} />
+            <Route path="/course/:slug/quiz" element={<ProtectedRoute><CourseQuiz /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
