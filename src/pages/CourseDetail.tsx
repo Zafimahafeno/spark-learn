@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Users, Clock, BookOpen, Play, FileText, File, ChevronDown, Award, Check, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -29,6 +29,7 @@ interface CourseDetail {
 const CourseDetailPage = () => {
   const { slug } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState<number[]>([]);
@@ -234,9 +235,12 @@ const CourseDetailPage = () => {
                 {course.price === 0 ? "Gratuit" : `${course.price}€`}
               </div>
               {isEnrolled ? (
-                <div className="w-full py-3 rounded-lg bg-primary/10 text-primary font-medium text-center flex items-center justify-center gap-2">
-                  <Check className="w-5 h-5" /> Vous êtes inscrit
-                </div>
+                <button
+                  onClick={() => navigate(`/course/${course.slug}/learn`)}
+                  className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  <BookOpen className="w-5 h-5" /> Accéder au cours
+                </button>
               ) : (
                 <button
                   onClick={handleEnroll}
