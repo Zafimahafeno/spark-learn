@@ -300,16 +300,31 @@ const CourseDetailPage = () => {
                     >
                       {section.lessons.map((lesson) => {
                         const Icon = contentIcon[lesson.content_type] || FileText;
+                        const canAccess = isEnrolled || lesson.is_preview;
                         return (
                           <div
                             key={lesson.id}
-                            className="flex items-center justify-between px-4 py-3 text-sm border-b border-border/50 last:border-b-0 hover:bg-secondary/30 transition-colors"
+                            onClick={() => {
+                              if (isEnrolled) {
+                                navigate(`/course/${course.slug}/learn`);
+                              } else if (lesson.is_preview) {
+                                navigate(`/course/${course.slug}/learn`);
+                              } else {
+                                toast.info("Inscrivez-vous pour accéder à cette leçon");
+                              }
+                            }}
+                            className={`flex items-center justify-between px-4 py-3 text-sm border-b border-border/50 last:border-b-0 transition-colors ${
+                              canAccess ? "hover:bg-primary/10 cursor-pointer" : "hover:bg-secondary/30 cursor-not-allowed opacity-60"
+                            }`}
                           >
                             <div className="flex items-center gap-3">
-                              <Icon className="w-4 h-4 text-muted-foreground" />
+                              <Icon className={`w-4 h-4 ${canAccess ? "text-primary" : "text-muted-foreground"}`} />
                               <span className="text-foreground">{lesson.title}</span>
                               {lesson.is_preview && (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">Aperçu</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Aperçu gratuit</span>
+                              )}
+                              {!canAccess && (
+                                <span className="text-xs text-muted-foreground">🔒</span>
                               )}
                             </div>
                             <span className="text-xs text-muted-foreground">{lesson.duration_minutes} min</span>
