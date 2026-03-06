@@ -99,7 +99,17 @@ const ManageCourses = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(editing ? "Cours mis à jour" : "Cours créé");
+      if (!editing) {
+        // After creating, redirect to content management
+        const { data: newCourse } = await supabase.from("courses").select("id").eq("slug", slug).eq("instructor_id", user.id).single();
+        if (newCourse) {
+          toast.success("Cours créé ! Ajoutez maintenant du contenu.");
+          setDialogOpen(false);
+          navigate(`/dashboard/manage-courses/${newCourse.id}/content`);
+          return;
+        }
+      }
+      toast.success("Cours mis à jour");
       setDialogOpen(false);
       load();
     }
