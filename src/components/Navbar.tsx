@@ -29,7 +29,7 @@ const Navbar = () => {
             <BookOpen className="w-5 h-5 text-primary-foreground" />
           </div>
           <span className="font-heading text-xl font-bold text-foreground">
-            Edu<span className="gradient-text">Pulse</span>
+            Tsirionantsoa<span className="gradient-text">School</span>
           </span>
         </Link>
 
