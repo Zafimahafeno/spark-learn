@@ -11,7 +11,7 @@ const Footer = () => {
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-heading text-lg font-bold">Edu<span className="gradient-text">Pulse</span></span>
+              <span className="font-heading text-lg font-bold">Tsirionantsoa<span className="gradient-text">School</span></span>
             </Link>
             <p className="text-sm text-muted-foreground">
               La plateforme d'apprentissage en ligne qui propulse votre carrière.
