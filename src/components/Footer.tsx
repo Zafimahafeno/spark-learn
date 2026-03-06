@@ -42,7 +42,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-          © 2026 EduPulse. Tous droits réservés.
+          © 2026 TsirionantsoaSchool. Tous droits réservés.
         </div>
       </div>
     </footer>
