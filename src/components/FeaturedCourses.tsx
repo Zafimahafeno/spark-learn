@@ -57,29 +57,48 @@ const FeaturedCourses = () => {
     fetch();
   }, []);
 
-  // Fall back to mock data if no courses in DB
-  if (courses.length === 0) {
-    return null;
-  }
+  if (courses.length === 0) return null;
 
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
+    <section className="py-24 relative overflow-hidden">
+      {/* Background orb */}
+      <motion.div
+        className="absolute bottom-0 left-0 w-[400px] h-[400px] orb-red blur-[120px] opacity-20"
+        animate={{ x: [0, 30, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex items-end justify-between mb-12"
+          transition={{ duration: 0.6 }}
+          className="flex items-end justify-between mb-14"
         >
           <div>
-            <h2 className="font-heading text-3xl font-bold mb-2">Cours populaires</h2>
+            <motion.span
+              className="inline-block text-xs font-semibold uppercase tracking-widest text-primary mb-3"
+              initial={{ opacity: 0, letterSpacing: "0.1em" }}
+              whileInView={{ opacity: 1, letterSpacing: "0.2em" }}
+              viewport={{ once: true }}
+            >
+              Populaires
+            </motion.span>
+            <h2 className="font-heading text-4xl font-bold mb-2">Cours populaires</h2>
             <p className="text-muted-foreground">Les cours les mieux notés par nos apprenants</p>
           </div>
           <Link
             to="/courses"
-            className="hidden md:inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            className="hidden md:inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline group"
           >
-            Voir tout <ArrowRight className="w-4 h-4" />
+            Voir tout
+            <motion.span
+              animate={{ x: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ArrowRight className="w-4 h-4" />
+            </motion.span>
           </Link>
         </motion.div>
 
